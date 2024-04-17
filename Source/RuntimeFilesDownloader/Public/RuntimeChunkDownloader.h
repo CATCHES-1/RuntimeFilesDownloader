@@ -9,11 +9,13 @@
 #include "Misc/EngineVersionComparison.h"
 
 enum class EDownloadToMemoryResult : uint8;
+enum class EUploadFromStorageResult : uint8;
 
 /**
  * A struct that contains the result of downloading a file
  */
 using FRuntimeChunkDownloaderResult = struct{ EDownloadToMemoryResult Result; TArray64<uint8> Data; };
+using FRuntimeChunkUploaderResult = struct{ EUploadFromStorageResult Result; };
 
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
 template <typename InIntType>
@@ -117,7 +119,18 @@ public:
 	 * @note This approach cannot be used to download files that are larger than 2 GB
 	 */
 	virtual TFuture<FRuntimeChunkDownloaderResult> DownloadFileByPayload(const FString& URL, float Timeout, const FString& ContentType, const TFunction<void(int64, int64)>& OnProgress);
-	
+
+	/**
+	 * Upload a file from memory to the specified URL using HTTP PUT.
+	 * @param URL The URL to upload the file to
+	 * @param Timeout The timeout value in seconds
+	 * @param Body The raw file bytes to upload
+	 * @param OnProgress A function that is called with the progress as BytesSent and ContentSize
+	 * @return A future that resolves to the response code of the upload
+	 */
+	TFuture<FRuntimeChunkUploaderResult> UploadFile(const FString& URL, float Timeout, TArray<uint8>& Body,
+		const TFunction<void(int64, int64)>&                       OnProgress);
+
 	/**
 	 * Get the content size of the file to be downloaded
 	 *
