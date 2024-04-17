@@ -70,9 +70,9 @@ public:
 
 protected:
 	/**
-	 * Download the file and save it to the device disk
+	 * Upload the file from the specified path
 	 *
-	 * @param URL The file URL to be uploaded
+	 * @param URL The URL for the file to be uploaded to
 	 * @param FilePath The absolute path and file name to load the file from
 	 * @param Timeout The maximum time to wait for the upload to complete, in seconds.
 	 */

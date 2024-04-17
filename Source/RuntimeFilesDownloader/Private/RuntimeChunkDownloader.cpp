@@ -654,7 +654,7 @@ TFuture<FRuntimeChunkUploaderResult> FRuntimeChunkDownloader::UploadFile(
 
 	if (!HttpRequestRef->ProcessRequest())
 	{
-		UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to download file chunk from %s: request failed"), *URL);
+		UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to upload file to %s: request failed"), *URL);
 		return MakeFulfilledPromise<FRuntimeChunkUploaderResult>(FRuntimeChunkUploaderResult{
 			EUploadFromStorageResult::UploadFailed
 		}).GetFuture();
