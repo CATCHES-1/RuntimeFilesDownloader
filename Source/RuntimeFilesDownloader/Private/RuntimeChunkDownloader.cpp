@@ -2,6 +2,7 @@
 
 #include "RuntimeChunkDownloader.h"
 
+#include "FileFromStorageUploader.h"
 #include "FileToMemoryDownloader.h"
 #include "RuntimeFilesDownloaderDefines.h"
 
@@ -580,4 +581,85 @@ void FRuntimeChunkDownloader::CancelDownload()
 		HttpRequest->CancelRequest();
 	}
 	UE_LOG(LogRuntimeFilesDownloader, Warning, TEXT("Download canceled"));
+}
+
+TFuture<FRuntimeChunkUploaderResult> FRuntimeChunkDownloader::UploadFile(
+	const FString& URL, float Timeout, TArray<uint8>& Body, const TFunction<void(int64, int64)>& OnProgress)
+{
+	TWeakPtr<FRuntimeChunkDownloader> WeakThisPtr = AsShared();
+
+	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequestRef = FHttpModule::Get().CreateRequest();
+	HttpRequestRef->SetVerb("PUT");
+	HttpRequestRef->SetURL(URL);
+	HttpRequestRef->SetTimeout(Timeout);
+
+	HttpRequestRef->SetContent(Body);
+	auto ContentSize = Body.Num();
+
+	HttpRequestRef->OnRequestProgress().BindLambda(
+		[WeakThisPtr, ContentSize, OnProgress](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived) {
+			TSharedPtr<FRuntimeChunkDownloader> SharedThis = WeakThisPtr.Pin();
+			if (SharedThis.IsValid())
+			{
+				const float Progress = ContentSize <= 0 ? 0.0f : static_cast<float>(BytesSent) / ContentSize;
+				UE_LOG(LogRuntimeFilesDownloader, Log,
+					TEXT("Uploaded %d bytes of file to %s. Overall: %lld, Progress: %.2f"), BytesSent,
+					*Request->GetURL(), ContentSize, Progress);
+				OnProgress(BytesReceived, ContentSize);
+			}
+		});
+
+	TSharedPtr<TPromise<FRuntimeChunkUploaderResult>> PromisePtr = MakeShared<TPromise<
+		FRuntimeChunkUploaderResult>>();
+	HttpRequestRef->OnProcessRequestComplete().BindLambda(
+		[WeakThisPtr, PromisePtr, URL](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess) mutable {
+			TSharedPtr<FRuntimeChunkDownloader> SharedThis = WeakThisPtr.Pin();
+			if (!SharedThis.IsValid())
+			{
+				UE_LOG(LogRuntimeFilesDownloader, Warning,
+					TEXT("Failed to upload file to %s: uploader has been destroyed"), *URL);
+				PromisePtr->SetValue(FRuntimeChunkUploaderResult{ EUploadFromStorageResult::UploadFailed });
+				return;
+			}
+			if (SharedThis->bCanceled)
+			{
+				UE_LOG(LogRuntimeFilesDownloader, Warning, TEXT("Canceled file upload to %s"), *URL);
+				PromisePtr->SetValue(FRuntimeChunkUploaderResult{ EUploadFromStorageResult::Cancelled });
+				return;
+			}
+
+			if (!bSuccess || !Response.IsValid())
+			{
+				UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to upload file to %s: request failed"),
+					*Request->GetURL());
+				PromisePtr->SetValue(FRuntimeChunkUploaderResult{ EUploadFromStorageResult::UploadFailed });
+				return;
+			}
+
+			if (Response->GetResponseCode() != 200)
+			{
+				auto ResponseText = Response->GetContentAsString();
+				UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to upload file to %s: %d %s"), *Request->GetURL(),
+					Response->GetResponseCode(), *ResponseText);
+				PromisePtr->SetValue(FRuntimeChunkUploaderResult{ EUploadFromStorageResult::UploadFailed });
+				return;
+			}
+
+			auto ResponseText = Response->GetContentAsString();
+			UE_LOG(LogRuntimeFilesDownloader, Display, TEXT("Successfully uploaded file to %s: %d %s"),
+				*Request->GetURL(), Response->GetResponseCode(), *ResponseText);
+
+			PromisePtr->SetValue(FRuntimeChunkUploaderResult{ EUploadFromStorageResult::Success });
+		});
+
+	if (!HttpRequestRef->ProcessRequest())
+	{
+		UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to download file chunk from %s: request failed"), *URL);
+		return MakeFulfilledPromise<FRuntimeChunkUploaderResult>(FRuntimeChunkUploaderResult{
+			EUploadFromStorageResult::UploadFailed
+		}).GetFuture();
+	}
+
+	HttpRequestPtr = HttpRequestRef;
+	return PromisePtr->GetFuture();
 }
