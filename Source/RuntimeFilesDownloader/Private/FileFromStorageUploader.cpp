@@ -9,7 +9,7 @@
 #include "GenericPlatform/GenericPlatformFile.h"
 
 UFileFromStorageUploader* UFileFromStorageUploader::UploadFileFromStorage(
-	const FString&                          URL, const FString& FilePath, float Timeout, const FOnDownloadProgress& OnProgress,
+	const FString& URL, const FString& FilePath, float Timeout, const FOnDownloadProgress& OnProgress,
 	const FOnFileFromStorageUploadComplete& OnComplete)
 {
 	return UploadFileFromStorage(URL, FilePath, Timeout, FOnDownloadProgressNative::CreateLambda(
@@ -22,14 +22,14 @@ UFileFromStorageUploader* UFileFromStorageUploader::UploadFileFromStorage(
 }
 
 UFileFromStorageUploader* UFileFromStorageUploader::UploadFileFromStorage(
-	const FString&                          URL, const FString& SavePath, float Timeout, const FOnDownloadProgressNative& OnProgress, const
-	FOnFileFromStorageUploadCompleteNative& OnComplete)
+	const FString& URL, const FString& SavePath, float Timeout, const FOnDownloadProgressNative& OnProgress, const
+	FOnFileFromStorageUploadCompleteNative& OnComplete, const TMap<FString, FString>& Headers)
 {
 	UFileFromStorageUploader* Uploader = NewObject<UFileFromStorageUploader>(StaticClass());
 	Uploader->AddToRoot();
 	Uploader->OnDownloadProgress = OnProgress;
 	Uploader->OnUploadComplete = OnComplete;
-	Uploader->UploadFileFromStorage(URL, SavePath, Timeout);
+	Uploader->UploadFileFromStorage(URL, SavePath, Timeout, Headers);
 	return Uploader;
 }
 
@@ -43,7 +43,7 @@ bool UFileFromStorageUploader::CancelDownload()
 	return false;
 }
 
-void UFileFromStorageUploader::UploadFileFromStorage(const FString& URL, const FString& SourceFile, float Timeout)
+void UFileFromStorageUploader::UploadFileFromStorage(const FString& URL, const FString& SourceFile, float Timeout, const TMap<FString, FString>& Headers)
 {
 	if (URL.IsEmpty())
 	{
@@ -95,7 +95,7 @@ void UFileFromStorageUploader::UploadFileFromStorage(const FString& URL, const F
 	}
 
 	RuntimeChunkDownloaderPtr = MakeShared<FRuntimeChunkDownloader>();
-	RuntimeChunkDownloaderPtr->UploadFile(URL, Timeout, Body, OnProgress).Next(OnResult);
+	RuntimeChunkDownloaderPtr->UploadFile(URL, Timeout, Body, OnProgress, Headers).Next(OnResult);
 }
 
 void UFileFromStorageUploader::OnComplete_Internal(EUploadFromStorageResult Result)

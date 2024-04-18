@@ -59,10 +59,12 @@ public:
 	 * @param Timeout The maximum time to wait for the upload to complete, in seconds.
 	 * @param OnProgress Delegate for upload progress updates
 	 * @param OnComplete Delegate for broadcasting the completion of the upload
+	 * @param Headers Additional request headers to include in the request
 	 */
 	static UFileFromStorageUploader* UploadFileFromStorage(const FString& URL, const FString& SavePath, float Timeout,
 														   const FOnDownloadProgressNative& OnProgress, const
-														   FOnFileFromStorageUploadCompleteNative& OnComplete);
+														   FOnFileFromStorageUploadCompleteNative& OnComplete,
+														   const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	//~ Begin UBaseFilesDownloader Interface
 	virtual bool CancelDownload() override;
@@ -75,8 +77,9 @@ protected:
 	 * @param URL The URL for the file to be uploaded to
 	 * @param FilePath The absolute path and file name to load the file from
 	 * @param Timeout The maximum time to wait for the upload to complete, in seconds.
+	 * @param Headers Additional request headers to include in the request
 	 */
-	void UploadFileFromStorage(const FString& URL, const FString& FilePath, float Timeout);
+	void UploadFileFromStorage(const FString& URL, const FString& FilePath, float Timeout, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Internal callback for when file uploading has finished

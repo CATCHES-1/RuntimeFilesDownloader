@@ -584,7 +584,7 @@ void FRuntimeChunkDownloader::CancelDownload()
 }
 
 TFuture<FRuntimeChunkUploaderResult> FRuntimeChunkDownloader::UploadFile(
-	const FString& URL, float Timeout, TArray<uint8>& Body, const TFunction<void(int64, int64)>& OnProgress)
+	const FString& URL, float Timeout, TArray<uint8>& Body, const TFunction<void(int64, int64)>& OnProgress, const TMap<FString, FString>& Headers)
 {
 	TWeakPtr<FRuntimeChunkDownloader> WeakThisPtr = AsShared();
 
@@ -592,7 +592,10 @@ TFuture<FRuntimeChunkUploaderResult> FRuntimeChunkDownloader::UploadFile(
 	HttpRequestRef->SetVerb("PUT");
 	HttpRequestRef->SetURL(URL);
 	HttpRequestRef->SetTimeout(Timeout);
-
+	for (const auto& Header : Headers)
+	{
+		HttpRequestRef->SetHeader(Header.Key, Header.Value);
+	}
 	HttpRequestRef->SetContent(Body);
 	auto ContentSize = Body.Num();
 

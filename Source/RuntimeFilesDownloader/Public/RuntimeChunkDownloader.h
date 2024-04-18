@@ -126,10 +126,11 @@ public:
 	 * @param Timeout The timeout value in seconds
 	 * @param Body The raw file bytes to upload
 	 * @param OnProgress A function that is called with the progress as BytesSent and ContentSize
+	 * @param Headers Additional request headers to include in the request
 	 * @return A future that resolves to the response code of the upload
 	 */
 	TFuture<FRuntimeChunkUploaderResult> UploadFile(const FString& URL, float Timeout, TArray<uint8>& Body,
-		const TFunction<void(int64, int64)>&                       OnProgress);
+		const TFunction<void(int64, int64)>& OnProgress, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Get the content size of the file to be downloaded
