@@ -608,7 +608,7 @@ TFuture<FRuntimeChunkUploaderResult> FRuntimeChunkDownloader::UploadFile(
 				UE_LOG(LogRuntimeFilesDownloader, Log,
 					TEXT("Uploaded %d bytes of file to %s. Overall: %lld, Progress: %.2f"), BytesSent,
 					*Request->GetURL(), ContentSize, Progress);
-				OnProgress(BytesReceived, ContentSize);
+				OnProgress(BytesSent, ContentSize);
 			}
 		});
 
