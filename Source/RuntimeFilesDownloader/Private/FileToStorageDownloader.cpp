@@ -21,13 +21,13 @@ UFileToStorageDownloader* UFileToStorageDownloader::DownloadFileToStorage(const 
 	}));
 }
 
-UFileToStorageDownloader* UFileToStorageDownloader::DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgressNative& OnProgress, const FOnFileToStorageDownloadCompleteNative& OnComplete)
+UFileToStorageDownloader* UFileToStorageDownloader::DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgressNative& OnProgress, const FOnFileToStorageDownloadCompleteNative& OnComplete, const TMap<FString, FString>& Headers)
 {
 	UFileToStorageDownloader* Downloader = NewObject<UFileToStorageDownloader>(StaticClass());
 	Downloader->AddToRoot();
 	Downloader->OnDownloadProgress = OnProgress;
 	Downloader->OnDownloadComplete = OnComplete;
-	Downloader->DownloadFileToStorage(URL, SavePath, Timeout, ContentType, bForceByPayload);
+	Downloader->DownloadFileToStorage(URL, SavePath, Timeout, ContentType, bForceByPayload, Headers);
 	return Downloader;
 }
 
@@ -41,7 +41,7 @@ bool UFileToStorageDownloader::CancelDownload()
 	return false;
 }
 
-void UFileToStorageDownloader::DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload)
+void UFileToStorageDownloader::DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload, const TMap<FString, FString>& Headers)
 {
 	if (URL.IsEmpty())
 	{
@@ -81,11 +81,11 @@ void UFileToStorageDownloader::DownloadFileToStorage(const FString& URL, const F
 
 	if (bForceByPayload)
 	{
-		RuntimeChunkDownloaderPtr->DownloadFileByPayload(URL, Timeout, ContentType, OnProgress).Next(OnResult);
+		RuntimeChunkDownloaderPtr->DownloadFileByPayload(URL, Timeout, ContentType, OnProgress, Headers).Next(OnResult);
 	}
 	else
 	{
-		RuntimeChunkDownloaderPtr->DownloadFile(URL, Timeout, ContentType, TNumericLimits<TArray<uint8>::SizeType>::Max(), OnProgress).Next(OnResult);
+		RuntimeChunkDownloaderPtr->DownloadFile(URL, Timeout, ContentType, TNumericLimits<TArray<uint8>::SizeType>::Max(), OnProgress, Headers).Next(OnResult);
 	}
 }
 

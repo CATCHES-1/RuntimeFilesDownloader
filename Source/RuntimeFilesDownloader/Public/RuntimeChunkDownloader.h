@@ -77,9 +77,10 @@ public:
 	 * @param ContentType The content type of the file
 	 * @param MaxChunkSize The maximum size of each chunk to download in bytes
 	 * @param OnProgress A function that is called with the progress as BytesReceived and ContentSize
+	 * @param Headers Additional headers to include in the request
 	 * @return A future that resolves to the downloaded data as a TArray64<uint8>
 	 */
-	virtual TFuture<FRuntimeChunkDownloaderResult> DownloadFile(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, const TFunction<void(int64, int64)>& OnProgress);
+	virtual TFuture<FRuntimeChunkDownloaderResult> DownloadFile(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, const TFunction<void(int64, int64)>& OnProgress, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Download a file by dividing it into chunks and downloading each chunk separately
@@ -91,9 +92,10 @@ public:
 	 * @param ChunkRange The range of chunks to download
 	 * @param OnProgress A function that is called with the progress as BytesReceived and ContentSize
 	 * @param OnChunkDownloaded A function that is called when each chunk is downloaded
+	 * @param Headers Additional headers to include in the request
 	 * @return A future that resolves to true if all chunks are downloaded successfully, false otherwise
 	 */
-	virtual TFuture<EDownloadToMemoryResult> DownloadFilePerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, FInt64Vector2 ChunkRange, const TFunction<void(int64, int64)>& OnProgress, const TFunction<void(TArray64<uint8>&&)>& OnChunkDownloaded);
+	virtual TFuture<EDownloadToMemoryResult> DownloadFilePerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, FInt64Vector2 ChunkRange, const TFunction<void(int64, int64)>& OnProgress, const TFunction<void(TArray64<uint8>&&)>& OnChunkDownloaded, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Download a single chunk of a file
@@ -115,10 +117,11 @@ public:
 	 * @param Timeout The timeout value in seconds
 	 * @param ContentType The content type of the file
 	 * @param OnProgress A function that is called with the progress as BytesReceived and ContentSize
+	 * @param Headers Additional headers to include in the request
 	 * @return A future that resolves to the downloaded data as a TArray64<uint8>
 	 * @note This approach cannot be used to download files that are larger than 2 GB
 	 */
-	virtual TFuture<FRuntimeChunkDownloaderResult> DownloadFileByPayload(const FString& URL, float Timeout, const FString& ContentType, const TFunction<void(int64, int64)>& OnProgress);
+	virtual TFuture<FRuntimeChunkDownloaderResult> DownloadFileByPayload(const FString& URL, float Timeout, const FString& ContentType, const TFunction<void(int64, int64)>& OnProgress, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Upload a file from memory to the specified URL using HTTP PUT.
@@ -126,7 +129,7 @@ public:
 	 * @param Timeout The timeout value in seconds
 	 * @param Body The raw file bytes to upload
 	 * @param OnProgress A function that is called with the progress as BytesSent and ContentSize
-	 * @param Headers Additional request headers to include in the request
+	 * @param Headers Additional headers to include in the request
 	 * @return A future that resolves to the response code of the upload
 	 */
 	TFuture<FRuntimeChunkUploaderResult> UploadFile(const FString& URL, float Timeout, TArray<uint8>& Body,
@@ -137,9 +140,10 @@ public:
 	 *
 	 * @param URL The URL of the file to be downloaded
 	 * @param Timeout The timeout value in seconds
+	 * @param Headers
 	 * @return A future that resolves to the content length of the file to be downloaded in bytes
 	 */
-	TFuture<int64> GetContentSize(const FString& URL, float Timeout);
+	TFuture<int64> GetContentSize(const FString& URL, float Timeout, const TMap<FString, FString>& Headers);
 
 	/**
 	 * Cancel the download
