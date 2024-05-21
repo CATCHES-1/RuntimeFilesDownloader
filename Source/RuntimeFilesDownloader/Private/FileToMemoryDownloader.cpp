@@ -24,14 +24,14 @@ UFileToMemoryDownloader* UFileToMemoryDownloader::DownloadFileToMemoryPerChunk(c
 	}));
 }
 
-UFileToMemoryDownloader* UFileToMemoryDownloader::DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, const FOnDownloadProgressNative& OnProgress, const FOnFileToMemoryChunkDownloadCompleteNative& OnChunkComplete, const FOnFileToMemoryAllChunksDownloadCompleteNative& OnAllChunksDownloadComplete)
+UFileToMemoryDownloader* UFileToMemoryDownloader::DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, const FOnDownloadProgressNative& OnProgress, const FOnFileToMemoryChunkDownloadCompleteNative& OnChunkComplete, const FOnFileToMemoryAllChunksDownloadCompleteNative& OnAllChunksDownloadComplete, const TMap<FString, FString>& Headers)
 {
 	UFileToMemoryDownloader* Downloader = NewObject<UFileToMemoryDownloader>(StaticClass());
 	Downloader->AddToRoot();
 	Downloader->OnDownloadProgress = OnProgress;
 	Downloader->OnChunkDownloadComplete = OnChunkComplete;
 	Downloader->OnAllChunksDownloadComplete = OnAllChunksDownloadComplete;
-	Downloader->DownloadFileToMemoryPerChunk(URL, Timeout, ContentType, MaxChunkSize);
+	Downloader->DownloadFileToMemoryPerChunk(URL, Timeout, ContentType, MaxChunkSize, Headers);
 	return Downloader;
 }
 
@@ -52,13 +52,13 @@ UFileToMemoryDownloader* UFileToMemoryDownloader::DownloadFileToMemory(const FSt
 	}));
 }
 
-UFileToMemoryDownloader* UFileToMemoryDownloader::DownloadFileToMemory(const FString& URL, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgressNative& OnProgress, const FOnFileToMemoryDownloadCompleteNative& OnComplete)
+UFileToMemoryDownloader* UFileToMemoryDownloader::DownloadFileToMemory(const FString& URL, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgressNative& OnProgress, const FOnFileToMemoryDownloadCompleteNative& OnComplete, const TMap<FString, FString>& Headers)
 {
 	UFileToMemoryDownloader* Downloader = NewObject<UFileToMemoryDownloader>(StaticClass());
 	Downloader->AddToRoot();
 	Downloader->OnDownloadProgress = OnProgress;
 	Downloader->OnDownloadComplete = OnComplete;
-	Downloader->DownloadFileToMemory(URL, Timeout, ContentType, bForceByPayload);
+	Downloader->DownloadFileToMemory(URL, Timeout, ContentType, bForceByPayload, Headers);
 	return Downloader;
 }
 
@@ -72,7 +72,8 @@ bool UFileToMemoryDownloader::CancelDownload()
 	return false;
 }
 
-void UFileToMemoryDownloader::DownloadFileToMemory(const FString& URL, float Timeout, const FString& ContentType, bool bForceByPayload)
+void UFileToMemoryDownloader::DownloadFileToMemory(const FString& URL, float Timeout, const FString& ContentType, bool bForceByPayload, const TMap<FString, FString>&
+	Headers)
 {
 	if (URL.IsEmpty())
 	{
@@ -102,15 +103,15 @@ void UFileToMemoryDownloader::DownloadFileToMemory(const FString& URL, float Tim
 	RuntimeChunkDownloaderPtr = MakeShared<FRuntimeChunkDownloader>();
 	if (bForceByPayload)
 	{
-		RuntimeChunkDownloaderPtr->DownloadFileByPayload(URL, Timeout, ContentType, OnProgress).Next(OnResult);
+		RuntimeChunkDownloaderPtr->DownloadFileByPayload(URL, Timeout, ContentType, OnProgress, Headers).Next(OnResult);
 	}
 	else
 	{
-		RuntimeChunkDownloaderPtr->DownloadFile(URL, Timeout, ContentType, TNumericLimits<TArray<uint8>::SizeType>::Max(), OnProgress).Next(OnResult);
+		RuntimeChunkDownloaderPtr->DownloadFile(URL, Timeout, ContentType, TNumericLimits<TArray<uint8>::SizeType>::Max(), OnProgress, Headers).Next(OnResult);
 	}
 }
 
-void UFileToMemoryDownloader::DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize)
+void UFileToMemoryDownloader::DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, const TMap<FString, FString>& Headers)
 {
 	if (URL.IsEmpty())
 	{
@@ -128,12 +129,12 @@ void UFileToMemoryDownloader::DownloadFileToMemoryPerChunk(const FString& URL, f
 
 	RuntimeChunkDownloaderPtr = MakeShared<FRuntimeChunkDownloader>();
 	RuntimeChunkDownloaderPtr->DownloadFilePerChunk(URL, Timeout, ContentType, MaxChunkSize, FInt64Vector2(), [this](int64 BytesReceived, int64 ContentSize)
-	{
-		BroadcastProgress(BytesReceived, ContentSize, ContentSize <= 0 ? 0 : static_cast<float>(BytesReceived) / ContentSize);
-	}, [this](TArray64<uint8> DownloadedContent)
-	{
-		OnChunkDownloadComplete.ExecuteIfBound(DownloadedContent);
-	}).Next([this](EDownloadToMemoryResult Result)
+		{
+			BroadcastProgress(BytesReceived, ContentSize, ContentSize <= 0 ? 0 : static_cast<float>(BytesReceived) / ContentSize);
+		}, [this](TArray64<uint8> DownloadedContent)
+		{
+			OnChunkDownloadComplete.ExecuteIfBound(DownloadedContent);
+		}, Headers).Next([this](EDownloadToMemoryResult Result)
 	{
 		RemoveFromRoot();
 		OnAllChunksDownloadComplete.ExecuteIfBound(Result);

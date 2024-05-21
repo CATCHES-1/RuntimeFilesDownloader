@@ -59,9 +59,10 @@ public:
 	 *
 	 * @param URL The URL of the file to be downloaded
 	 * @param Timeout The maximum time to wait for the download to complete, in seconds. Works only for engine versions >= 4.26
-	 * @param OnComplete Delegate for broadcasting the completion of the download 
+	 * @param OnComplete Delegate for broadcasting the completion of the download
+	 * @param Headers Additional headers to include in the request
 	 */
-	static void GetContentSize(const FString& URL, float Timeout, const FOnGetDownloadContentLengthNative& OnComplete);
+	static void GetContentSize(const FString& URL, float Timeout, const FOnGetDownloadContentLengthNative& OnComplete, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Convert bytes to string

@@ -52,6 +52,7 @@ public:
 	 * @param bForceByPayload If true, download the file regardless of the Content-Length header's presence (useful for servers without support for this header)
 	 * @param OnProgress Delegate for download progress updates
 	 * @param OnComplete Delegate for broadcasting the completion of the download
+	 * @note Headers are not supported since Blueprints have no TMap type.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Runtime Files Downloader|Storage")
 	static UFileToStorageDownloader* DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgress& OnProgress, const FOnFileToStorageDownloadComplete& OnComplete);
@@ -66,8 +67,9 @@ public:
 	 * @param bForceByPayload If true, download the file regardless of the Content-Length header's presence (useful for servers without support for this header)
 	 * @param OnProgress Delegate for download progress updates
 	 * @param OnComplete Delegate for broadcasting the completion of the download
+	 * @param Headers Additional headers to include in the request
 	 */
-	static UFileToStorageDownloader* DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgressNative& OnProgress, const FOnFileToStorageDownloadCompleteNative& OnComplete);
+	static UFileToStorageDownloader* DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgressNative& OnProgress, const FOnFileToStorageDownloadCompleteNative& OnComplete, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	//~ Begin UBaseFilesDownloader Interface
 	virtual bool CancelDownload() override;
@@ -82,8 +84,9 @@ protected:
 	 * @param Timeout The maximum time to wait for the download to complete, in seconds. Works only for engine versions >= 4.26
 	 * @param ContentType A string to set in the Content-Type header field. Use a MIME type to specify the file type
 	 * @param bForceByPayload If true, the file will be downloaded by payload even if the Content-Length header is present in the response
+	 * @param Headers
 	 */
-	void DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload);
+	void DownloadFileToStorage(const FString& URL, const FString& SavePath, float Timeout, const FString& ContentType, bool bForceByPayload, const TMap<FString, FString>& Headers);
 
 	/**
 	 * Internal callback for when file downloading has finished

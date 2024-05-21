@@ -78,8 +78,9 @@ public:
 	 * @param bForceByPayload If true, download the file regardless of the Content-Length header's presence (useful for servers without support for this header)
 	 * @param OnProgress Delegate for download progress updates
 	 * @param OnComplete Delegate for broadcasting the completion of the download
+	 * @param Headers Additional headers to include in the request
 	 */
-	static UFileToMemoryDownloader* DownloadFileToMemory(const FString& URL, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgressNative& OnProgress, const FOnFileToMemoryDownloadCompleteNative& OnComplete);
+	static UFileToMemoryDownloader* DownloadFileToMemory(const FString& URL, float Timeout, const FString& ContentType, bool bForceByPayload, const FOnDownloadProgressNative& OnProgress, const FOnFileToMemoryDownloadCompleteNative& OnComplete, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Download the file and save it as a byte array in temporary memory (RAM). Continuously broadcasts the download result per chunk
@@ -91,6 +92,7 @@ public:
 	 * @param OnProgress Delegate for download progress updates
 	 * @param OnChunkDownloadComplete Delegate for broadcasting the completion of the download. Will be called for each chunk
 	 * @param OnAllChunksDownloadComplete Delegate for broadcasting the completion of the download of all chunks
+	 * @note Headers are not supported since Blueprints have no TMap type.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Runtime Files Downloader|Memory")
 	static UFileToMemoryDownloader* DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int32 MaxChunkSize, const FOnDownloadProgress& OnProgress, const FOnFileToMemoryChunkDownloadComplete& OnChunkDownloadComplete, const FOnFileToMemoryAllChunksDownloadComplete& OnAllChunksDownloadComplete);
@@ -105,8 +107,10 @@ public:
 	 * @param OnProgress Delegate for download progress updates
 	 * @param OnChunkDownloadComplete Delegate for broadcasting the completion of the download. Will be called for each chunk
 	 * @param OnAllChunksDownloadComplete Delegate for broadcasting the completion of the download of all chunks
+	 * @param Headers Additional headers to include in the request
 	 */
-	static UFileToMemoryDownloader* DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, const FOnDownloadProgressNative& OnProgress, const FOnFileToMemoryChunkDownloadCompleteNative& OnChunkDownloadComplete, const FOnFileToMemoryAllChunksDownloadCompleteNative& OnAllChunksDownloadComplete);
+	static UFileToMemoryDownloader* DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, const FOnDownloadProgressNative& OnProgress, const FOnFileToMemoryChunkDownloadCompleteNative& OnChunkDownloadComplete, const FOnFileToMemoryAllChunksDownloadCompleteNative& OnAllChunksDownloadComplete, const
+		TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	//~ Begin UBaseFilesDownloader Interface
 	virtual bool CancelDownload() override;
@@ -120,8 +124,9 @@ protected:
 	 * @param Timeout The maximum time to wait for the download to complete, in seconds. Works only for engine versions >= 4.26
 	 * @param ContentType A string to set in the Content-Type header field. Use a MIME type to specify the file type
 	 * @param bForceByPayload If true, download the file regardless of the Content-Length header's presence (useful for servers without support for this header)
+	 * @param Headers
 	 */
-	void DownloadFileToMemory(const FString& URL, float Timeout, const FString& ContentType, bool bForceByPayload);
+	void DownloadFileToMemory(const FString& URL, float Timeout, const FString& ContentType, bool bForceByPayload, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Download the file and save it as a byte array in temporary memory (RAM). Continuously broadcasts the download result per chunk. Suitable for use in C++
@@ -130,6 +135,8 @@ protected:
 	 * @param Timeout The maximum time to wait for the download to complete, in seconds. Works only for engine versions >= 4.26
 	 * @param ContentType A string to set in the Content-Type header field. Use a MIME type to specify the file type
 	 * @param MaxChunkSize The maximum size of each chunk to download in bytes
+	 * @param Headers
 	 */
-	void DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize);
+	void DownloadFileToMemoryPerChunk(const FString& URL, float Timeout, const FString& ContentType, int64 MaxChunkSize, const TMap<FString, FString>&
+		Headers);
 };

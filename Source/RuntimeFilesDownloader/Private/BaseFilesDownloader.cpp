@@ -33,12 +33,12 @@ void UBaseFilesDownloader::GetContentSize(const FString& URL, float Timeout, con
 	}));
 }
 
-void UBaseFilesDownloader::GetContentSize(const FString& URL, float Timeout, const FOnGetDownloadContentLengthNative& OnComplete)
+void UBaseFilesDownloader::GetContentSize(const FString& URL, float Timeout, const FOnGetDownloadContentLengthNative& OnComplete, const TMap<FString, FString>& Headers)
 {
 	UBaseFilesDownloader* FileDownloader = NewObject<UBaseFilesDownloader>();
 	FileDownloader->AddToRoot();
 	FileDownloader->RuntimeChunkDownloaderPtr = MakeShared<FRuntimeChunkDownloader>();
-	FileDownloader->RuntimeChunkDownloaderPtr->GetContentSize(URL, Timeout).Next([FileDownloader, OnComplete](int64 ContentSize)
+	FileDownloader->RuntimeChunkDownloaderPtr->GetContentSize(URL, Timeout, Headers).Next([FileDownloader, OnComplete](int64 ContentSize)
 	{
 		if (FileDownloader)
 		{
