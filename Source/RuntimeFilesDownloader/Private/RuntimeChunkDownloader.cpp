@@ -276,7 +276,7 @@ TFuture<EDownloadToMemoryResult> FRuntimeChunkDownloader::DownloadFilePerChunk(c
 			}
 		};
 
-		SharedThis->DownloadFileByChunk(URL, Timeout, ContentType, ContentSize, ChunkRange, OnProgressInternal).Next([WeakThisPtr, PromisePtr, URL, Timeout, ContentType, ContentSize, MaxChunkSize, OnChunkDownloaded, OnProgress, ChunkRange, Headers](FRuntimeChunkDownloaderResult&& Result)
+		SharedThis->DownloadFileByChunk(URL, Timeout, ContentType, ContentSize, ChunkRange, OnProgressInternal, Headers).Next([WeakThisPtr, PromisePtr, URL, Timeout, ContentType, ContentSize, MaxChunkSize, OnChunkDownloaded, OnProgress, ChunkRange, Headers](FRuntimeChunkDownloaderResult&& Result)
 		{
 			TSharedPtr<FRuntimeChunkDownloader> SharedThis = WeakThisPtr.Pin();
 			if (!SharedThis.IsValid())
@@ -323,7 +323,7 @@ TFuture<EDownloadToMemoryResult> FRuntimeChunkDownloader::DownloadFilePerChunk(c
 	return PromisePtr->GetFuture();
 }
 
-TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByChunk(const FString& URL, float Timeout, const FString& ContentType, int64 ContentSize, FInt64Vector2 ChunkRange, const TFunction<void(int64, int64)>& OnProgress)
+TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByChunk(const FString& URL, float Timeout, const FString& ContentType, int64 ContentSize, FInt64Vector2 ChunkRange, const TFunction<void(int64, int64)>& OnProgress, const TMap<FString, FString>& Headers)
 {
 	if (bCanceled)
 	{
@@ -363,6 +363,11 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByCh
 	if (!ContentType.IsEmpty())
 	{
 		HttpRequestRef->SetHeader(TEXT("Content-Type"), ContentType);
+	}
+
+	for (const auto& [Key, Value] : Headers)
+	{
+		HttpRequestRef->SetHeader(Key, Value);
 	}
 
 	const FString RangeHeaderValue = FString::Format(TEXT("bytes={0}-{1}"), {ChunkRange.X, ChunkRange.Y});

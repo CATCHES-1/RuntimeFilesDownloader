@@ -108,7 +108,7 @@ public:
 	 * @param OnProgress A function that is called with the progress as BytesReceived and ContentSize
 	 * @return A future that resolves to the downloaded data as a TArray64<uint8>
 	 */
-	virtual TFuture<FRuntimeChunkDownloaderResult> DownloadFileByChunk(const FString& URL, float Timeout, const FString& ContentType, int64 ContentSize, FInt64Vector2 ChunkRange, const TFunction<void(int64, int64)>& OnProgress);
+	virtual TFuture<FRuntimeChunkDownloaderResult> DownloadFileByChunk(const FString& URL, float Timeout, const FString& ContentType, int64 ContentSize, FInt64Vector2 ChunkRange, const TFunction<void(int64, int64)>& OnProgress, const TMap<FString, FString>& Headers = TMap<FString, FString>());
 
 	/**
 	 * Download a file using payload-based approach. This approach is used when the server does not return the Content-Length header
