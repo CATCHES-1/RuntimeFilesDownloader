@@ -404,6 +404,13 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByCh
 			return;
 		}
 
+		if (Response->GetResponseCode() / 100 != 2)
+		{
+			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to download file chunk from %s: response code is %d"), *Request->GetURL(), Response->GetResponseCode());
+			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, TArray64<uint8>()});
+			return;
+		}
+
 		if (Response->GetContentLength() <= 0)
 		{
 			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to download file chunk from %s: content length is 0"), *Request->GetURL());
@@ -500,6 +507,13 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByPa
 			return;
 		}
 
+		if (Response->GetResponseCode() / 100 != 2)
+		{
+			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to GET for downloading file from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
+			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, TArray64<uint8>()});
+			return;
+		}
+
 		if (Response->GetContentLength() <= 0)
 		{
 			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to download file from %s by payload: content length is 0"), *Request->GetURL());
@@ -549,6 +563,12 @@ TFuture<int64> FRuntimeChunkDownloader::GetContentSize(const FString& URL, float
 		if (!bSucceeded || !Response.IsValid())
 		{
 			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to get size of file from %s: request failed"), *URL);
+			PromisePtr->SetValue(0);
+			return;
+		}
+		if (Response->GetResponseCode() / 100 != 2)
+		{
+			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to HEAD for getting file size of %s: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 			PromisePtr->SetValue(0);
 			return;
 		}
