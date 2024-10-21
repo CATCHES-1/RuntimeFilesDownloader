@@ -17,7 +17,7 @@ enum class EUploadFromStorageResult : uint8
 
 
 /** Static delegate broadcast after the upload is complete */
-DECLARE_DELEGATE_OneParam(FOnFileFromStorageUploadCompleteNative, EUploadFromStorageResult);
+DECLARE_DELEGATE_TwoParams(FOnFileFromStorageUploadCompleteNative, EUploadFromStorageResult, FString&);
 
 /** Dynamic delegate broadcast after the upload is complete */
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnFileFromStorageUploadComplete, EUploadFromStorageResult, Result);
@@ -35,6 +35,8 @@ class RUNTIMEFILESDOWNLOADER_API UFileFromStorageUploader : public UBaseFilesDow
 protected:
 	/** Static delegate for monitoring the completion of the upload */
 	FOnFileFromStorageUploadCompleteNative OnUploadComplete;
+
+	FString FilePath;
 
 public:
 	/**
