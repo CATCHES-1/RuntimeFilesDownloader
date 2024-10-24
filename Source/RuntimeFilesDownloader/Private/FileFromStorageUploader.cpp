@@ -16,7 +16,7 @@ UFileFromStorageUploader* UFileFromStorageUploader::UploadFileFromStorage(
 		[OnProgress](int64 BytesReceived, int64 ContentSize, float ProgressRatio) {
 			OnProgress.ExecuteIfBound(BytesReceived, ContentSize, ProgressRatio);
 		}), FOnFileFromStorageUploadCompleteNative::CreateLambda(
-		[OnComplete](EUploadFromStorageResult Result) {
+		[OnComplete](EUploadFromStorageResult Result, FString& FilePath) {
 			OnComplete.ExecuteIfBound(Result);
 		}));
 }
@@ -27,6 +27,7 @@ UFileFromStorageUploader* UFileFromStorageUploader::UploadFileFromStorage(
 {
 	UFileFromStorageUploader* Uploader = NewObject<UFileFromStorageUploader>(StaticClass());
 	Uploader->AddToRoot();
+	Uploader->FilePath = SavePath;
 	Uploader->OnDownloadProgress = OnProgress;
 	Uploader->OnUploadComplete = OnComplete;
 	Uploader->UploadFileFromStorage(URL, SavePath, Timeout, Headers);
@@ -48,7 +49,7 @@ void UFileFromStorageUploader::UploadFileFromStorage(const FString& URL, const F
 	if (URL.IsEmpty())
 	{
 		UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("You have not provided an URL to upload the file"));
-		OnUploadComplete.ExecuteIfBound(EUploadFromStorageResult::InvalidURL);
+		OnUploadComplete.ExecuteIfBound(EUploadFromStorageResult::InvalidURL, FilePath);
 		RemoveFromRoot();
 		return;
 	}
@@ -56,7 +57,7 @@ void UFileFromStorageUploader::UploadFileFromStorage(const FString& URL, const F
 	if (SourceFile.IsEmpty())
 	{
 		UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("You have not provided a path for the file to be uploaded"));
-		OnUploadComplete.ExecuteIfBound(EUploadFromStorageResult::InvalidPath);
+		OnUploadComplete.ExecuteIfBound(EUploadFromStorageResult::InvalidPath, FilePath);
 		RemoveFromRoot();
 		return;
 	}
@@ -89,7 +90,7 @@ void UFileFromStorageUploader::UploadFileFromStorage(const FString& URL, const F
 		#elif PLATFORM_WINDOWS
 		// Figure it out yourself. Sorry.
 		#endif
-		OnUploadComplete.ExecuteIfBound(EUploadFromStorageResult::LoadFailed);
+		OnUploadComplete.ExecuteIfBound(EUploadFromStorageResult::LoadFailed, FilePath);
 		RemoveFromRoot();
 		return;
 	}
@@ -128,5 +129,5 @@ void UFileFromStorageUploader::OnComplete_Internal(EUploadFromStorageResult Resu
 				*UEnum::GetValueAsString(Result));
 			return;
 	}
-	OnUploadComplete.ExecuteIfBound(ResultUpstream);
+	OnUploadComplete.ExecuteIfBound(ResultUpstream, FilePath);
 }
