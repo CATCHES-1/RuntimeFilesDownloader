@@ -15,7 +15,7 @@ UFileToStorageDownloader* UFileToStorageDownloader::DownloadFileToStorage(const 
 	return DownloadFileToStorage(URL, SavePath, Timeout, ContentType, bForceByPayload, FOnDownloadProgressNative::CreateLambda([OnProgress](int64 BytesReceived, int64 ContentSize, float ProgressRatio)
 	{
 		OnProgress.ExecuteIfBound(BytesReceived, ContentSize, ProgressRatio);
-	}), FOnFileToStorageDownloadCompleteNative::CreateLambda([OnComplete](EDownloadToStorageResult Result, const FString& SavedPath)
+	}), FOnFileToStorageDownloadCompleteNative::CreateLambda([OnComplete](EDownloadToStorageResult Result, const FString& SavedPath, const TArray<FString>& Headers)
 	{
 		OnComplete.ExecuteIfBound(Result, SavedPath);
 	}));
