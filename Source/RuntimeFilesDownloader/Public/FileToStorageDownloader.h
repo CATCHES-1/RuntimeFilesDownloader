@@ -12,6 +12,8 @@ enum class EDownloadToStorageResult : uint8
 	Success,
 	/** Downloaded successfully, but there was no Content-Length header in the response and thus downloaded by payload */
 	SucceededByPayload,
+	/** Nothing was downloaded, since the provided If-None-Match header matched */
+	NotModified,
 	Cancelled,
 	DownloadFailed,
 	SaveFailed,
@@ -22,7 +24,7 @@ enum class EDownloadToStorageResult : uint8
 
 
 /** Static delegate broadcast after the download is complete */
-DECLARE_DELEGATE_TwoParams(FOnFileToStorageDownloadCompleteNative, EDownloadToStorageResult, const FString&);
+DECLARE_DELEGATE_ThreeParams(FOnFileToStorageDownloadCompleteNative, EDownloadToStorageResult, const FString&, const TArray<FString>&);
 
 /** Dynamic delegate broadcast after the download is complete */
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnFileToStorageDownloadComplete, EDownloadToStorageResult, Result, const FString&, SavedPath);
@@ -91,7 +93,7 @@ protected:
 	/**
 	 * Internal callback for when file downloading has finished
 	 */
-	void OnComplete_Internal(EDownloadToMemoryResult Result, TArray64<uint8> DownloadedContent);
+	void OnComplete_Internal(EDownloadToMemoryResult Result, TArray64<uint8> DownloadedContent, TArray<FString> Headers);
 
 protected:
 	/** The destination path to save the downloaded file */

@@ -14,7 +14,7 @@ enum class EUploadFromStorageResult : uint8;
 /**
  * A struct that contains the result of downloading a file
  */
-using FRuntimeChunkDownloaderResult = struct{ EDownloadToMemoryResult Result; TArray64<uint8> Data; };
+using FRuntimeChunkDownloaderResult = struct{ EDownloadToMemoryResult Result; TArray64<uint8> Data; TArray<FString> Headers; };
 using FRuntimeChunkUploaderResult = struct{ EUploadFromStorageResult Result; };
 
 #if UE_VERSION_OLDER_THAN(5, 1, 0)
