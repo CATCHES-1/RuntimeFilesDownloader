@@ -417,13 +417,15 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByCh
 
 		if (Response->GetResponseCode() / 100 != 2)
 		{
-			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to GET for downloading file chunk from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
+
 			if (Response->GetResponseCode() == 304)
 			{
+				UE_LOG(LogRuntimeFilesDownloader, Log, TEXT("Response code to GET for downloading file chunk from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 				PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::NotModified, {}, Response->GetAllHeaders()});
 			}
 			else
 			{
+				UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to GET for downloading file chunk from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 				PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, Response->GetAllHeaders()});
 			}
 			return;
@@ -526,13 +528,14 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByPa
 		}
 		if (Response->GetResponseCode() / 100 != 2)
 		{
-			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to GET for downloading file from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 			if (Response->GetResponseCode() == 304)
 			{
+				UE_LOG(LogRuntimeFilesDownloader, Log, TEXT("Response code to GET for downloading file from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 				PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::NotModified, {}, Response->GetAllHeaders()});
 			}
 			else
 			{
+				UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to GET for downloading file from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 				PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, Response->GetAllHeaders()});
 			}
 			return;
@@ -592,21 +595,16 @@ TFuture<int64> FRuntimeChunkDownloader::GetContentSize(const FString& URL, float
 		}
 		if (Response->GetResponseCode() / 100 != 2)
 		{
-			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to GET for downloading file chunk from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 			if (Response->GetResponseCode() == 304)
 			{
+				UE_LOG(LogRuntimeFilesDownloader, Log, TEXT("Response code to GET for downloading file chunk from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 				PromisePtr->SetValue(-304);
 			}
 			else
 			{
+				UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to GET for downloading file chunk from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
 				PromisePtr->SetValue(0);
 			}
-			return;
-		}
-		if (Response->GetResponseCode() / 100 != 2)
-		{
-			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to HEAD for getting file size of %s: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
-			PromisePtr->SetValue(0);
 			return;
 		}
 
