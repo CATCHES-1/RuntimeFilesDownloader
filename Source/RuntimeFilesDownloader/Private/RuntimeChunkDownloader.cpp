@@ -65,6 +65,7 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFile(con
 			});
 		};
 
+		// -304 is used by GetContentSize to signal that the HEAD request returned a "304 Not Modified" instead of a size.
 		if (ContentSize == -304)
 		{
 			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::NotModified, {}, {}});
