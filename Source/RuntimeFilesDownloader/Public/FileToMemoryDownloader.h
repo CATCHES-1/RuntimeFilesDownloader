@@ -14,6 +14,7 @@ enum class EDownloadToMemoryResult : uint8
 	Success,
 	/** Downloaded successfully, but there was no Content-Length header in the response and thus downloaded by payload */
 	SucceededByPayload,
+	NotModified,
 	Cancelled,
 	DownloadFailed,
 	InvalidURL
