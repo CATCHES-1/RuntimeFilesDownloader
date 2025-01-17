@@ -524,7 +524,7 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByPa
 		if (!bSuccess || !Response.IsValid())
 		{
 			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to download file from %s by payload: request failed"), *Request->GetURL());
-			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, Response->GetAllHeaders()});
+			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, Response ? Response->GetAllHeaders() : TArray<FString>() });
 			return;
 		}
 		if (Response->GetResponseCode() / 100 != 2)
