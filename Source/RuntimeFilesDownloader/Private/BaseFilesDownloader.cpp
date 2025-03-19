@@ -11,13 +11,14 @@
 
 UBaseFilesDownloader::UBaseFilesDownloader()
 {
-	FWorldDelegates::OnWorldCleanup.AddWeakLambda(this, [this](UWorld* World, bool bSessionEnded, bool bCleanupResources)
-	{
-		if (bSessionEnded)
-		{
-			CancelDownload();
-		}
-	});
+	// --- Note: this part is commented out because we don't need to cancel downloads on World reload 
+	// FWorldDelegates::OnWorldCleanup.AddWeakLambda(this, [this](UWorld* World, bool bSessionEnded, bool bCleanupResources)
+	// {
+	// 	if (bSessionEnded)
+	// 	{
+	// 		CancelDownload();
+	// 	}
+	// });
 }
 
 bool UBaseFilesDownloader::CancelDownload()

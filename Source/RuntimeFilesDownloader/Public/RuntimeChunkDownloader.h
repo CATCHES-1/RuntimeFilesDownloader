@@ -159,5 +159,5 @@ protected:
 #endif
 
 	/** A flag indicating whether the download has been canceled */
-	bool bCanceled;
+	bool bCanceled = false;
 };

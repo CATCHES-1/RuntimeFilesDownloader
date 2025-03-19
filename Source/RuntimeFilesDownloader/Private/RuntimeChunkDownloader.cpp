@@ -507,24 +507,25 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByPa
 	HttpRequestRef->OnProcessRequestComplete().BindLambda([WeakThisPtr, PromisePtr, URL](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess) mutable
 	{
 		TSharedPtr<FRuntimeChunkDownloader> SharedThis = WeakThisPtr.Pin();
+		TArray<FString> ResponseHeaders = Response ? Response->GetAllHeaders() : TArray<FString>();
 		if (!SharedThis.IsValid())
 		{
 			UE_LOG(LogRuntimeFilesDownloader, Warning, TEXT("Failed to download file from %s by payload: downloader has been destroyed"), *URL);
-			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, Response->GetAllHeaders()});
+			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, ResponseHeaders});
 			return;
 		}
 
 		if (SharedThis->bCanceled)
 		{
 			UE_LOG(LogRuntimeFilesDownloader, Warning, TEXT("Canceled file download from %s by payload"), *URL);
-			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::Cancelled, {}, Response->GetAllHeaders()});
+			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::Cancelled, {}, ResponseHeaders});
 			return;
 		}
 
 		if (!bSuccess || !Response.IsValid())
 		{
 			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to download file from %s by payload: request failed"), *Request->GetURL());
-			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, Response ? Response->GetAllHeaders() : TArray<FString>() });
+			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, ResponseHeaders });
 			return;
 		}
 		if (Response->GetResponseCode() / 100 != 2)
@@ -532,12 +533,12 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByPa
 			if (Response->GetResponseCode() == 304)
 			{
 				UE_LOG(LogRuntimeFilesDownloader, Log, TEXT("Response code to GET for downloading file from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
-				PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::NotModified, {}, Response->GetAllHeaders()});
+				PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::NotModified, {}, ResponseHeaders});
 			}
 			else
 			{
 				UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Response code to GET for downloading file from %s by payload: %d %s"), *URL, Response->GetResponseCode(), *Response->GetContentAsString());
-				PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, Response->GetAllHeaders()});
+				PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, ResponseHeaders});
 			}
 			return;
 		}
@@ -545,12 +546,12 @@ TFuture<FRuntimeChunkDownloaderResult> FRuntimeChunkDownloader::DownloadFileByPa
 		if (Response->GetContentLength() <= 0)
 		{
 			UE_LOG(LogRuntimeFilesDownloader, Error, TEXT("Failed to download file from %s by payload: content length is 0"), *Request->GetURL());
-			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, Response->GetAllHeaders()});
+			PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::DownloadFailed, {}, ResponseHeaders});
 			return;
 		}
 
 		UE_LOG(LogRuntimeFilesDownloader, Log, TEXT("Successfully downloaded file from %s by payload. Overall: %lld"), *Request->GetURL(), static_cast<int64>(Response->GetContentLength()));
-		return PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::SucceededByPayload, TArray64<uint8>(Response->GetContent()), Response->GetAllHeaders()});
+		return PromisePtr->SetValue(FRuntimeChunkDownloaderResult{EDownloadToMemoryResult::SucceededByPayload, TArray64<uint8>(Response->GetContent()), ResponseHeaders});
 	});
 
 	if (!HttpRequestRef->ProcessRequest())
